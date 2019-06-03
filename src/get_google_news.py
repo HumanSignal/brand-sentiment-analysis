@@ -1,9 +1,15 @@
 """
 """
 import optparse
-import csv
+import requests
+import html2text
+import re
+import pandas as pd
 
+from urllib.parse import quote
+from dateutil.parser import parse
 from GoogleNews import GoogleNews
+from readability import Document
 
 
 def get_news(query=None, pages=1, *args, **kwargs):
@@ -11,17 +17,35 @@ def get_news(query=None, pages=1, *args, **kwargs):
     """
     if query is None:
         raise Exception()
-    
-    news = []
-    
+
+    print(f'Start seaching query "{query}"')
     googlenews = GoogleNews()                                                                                              
-    googlenews.search(query)
-    
+    googlenews.search(quote(query))
+
+    news = []
+    seen_texts = set()
     for p in range(1, pages + 1):
         print(p)
         googlenews.getpage(p)
-        news = news + googlenews.gettext()
-    
+        r = googlenews.result()
+        for item in r:
+            try:
+                date = item['date']
+                timestamp = int(parse(date).timestamp())
+                link = item['link']
+                h = html2text.HTML2Text()
+                h.ignore_links = True
+                f = requests.get(link)
+                html = f.text
+                doc = Document(html)
+                text = h.handle(doc.summary())
+                if text not in seen_texts:
+                    seen_texts.add(text)
+                    text = re.sub(r'[\n\t]+', ' ', text)
+                    news.append({'timestamp': timestamp, 'text': text})
+            except Exception as exc:
+                print(f'Exception while processing item {item}: {exc}')
+
     return news
 
 
@@ -30,16 +54,12 @@ if __name__=="__main__":
     """
     parser = optparse.OptionParser()
     
-    parser.add_option('-q', '--query', action="store", dest="query", help="query string")
+    parser.add_option('-q', '--query', action="store", dest="query", help="query string", default='Heartex')
     parser.add_option('-p', '--pages', action="store", type=int, dest="pages", default=10, help="number of pages to grab")
-    parser.add_option('-o', '--output', action="store", dest="output", default="news.csv", help="csv output filename")
+    parser.add_option('-o', '--output', action="store", dest="output", default="news.csv", help="output CSV file")
     
     options, args = parser.parse_args()    
     news = get_news(**vars(options))
-    
-    with open(options.output, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter=',', fieldnames = ["news"])
-        writer.writeheader()
 
-        for row in news:
-            writer.writerow({ "news": row })
+    pd.DataFrame.from_records(news, columns=['timestamp', 'text']).sort_values(by='timestamp').to_csv(options.output, sep='\t', index=False)
+    print(f'{len(news)} news are dumped to {options.output}.')
