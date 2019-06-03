@@ -5,8 +5,8 @@ import json
 import io
 import requests
 import html2text
-import re
 
+from dateutil.parser import parse
 from GoogleNews import GoogleNews
 from readability import Document
 
@@ -21,27 +21,33 @@ def get_news(query=None, pages=1, *args, **kwargs):
     googlenews.search(query)
 
     news = []
-    
+    seen_texts = set()
     for p in range(1, pages + 1):
         print(p)
         googlenews.getpage(p)
         r = googlenews.result()
         for item in r:
-            date = item['date']
+            try:
+                date = item['date']
+                timestamp = int(parse(date).timestamp())
+            except:
+                continue
             link = item['link']
             h = html2text.HTML2Text()
             h.ignore_links = True
             try:
                 f = requests.get(link)
             except:
-                pass
+                continue
             else:
                 html = f.text
                 doc = Document(html)
                 text = h.handle(doc.summary())
-                news.append((date, text))
+                if text not in seen_texts:
+                    news.append({'date': date, 'timestamp': timestamp, 'text': text})
+                    seen_texts.add(text)
 
-    return list(set(news))
+    return news
 
 
 if __name__=="__main__":
@@ -57,4 +63,5 @@ if __name__=="__main__":
     news = get_news(**vars(options))
     
     with io.open(options.output, mode='w') as fout:
-        json.dump([{'date': date, 'text': text} for date, text in news], fout, indent=2, ensure_ascii=False)
+        json.dump(news, fout, indent=2, ensure_ascii=False)
+    print(f'{len(news)} news are dumped to {options.output}.')
