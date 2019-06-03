@@ -34,14 +34,14 @@ python src/get_google_news.py --pages=10 --query=$BRAND --output=news.csv
 
 ```sh
 # 
-python src/create_sentiment_project.py --token=$TOKEN --input=filtered.csv
+python src/create_sentiment_project.py --token=$TOKEN --input=news.csv
 
 export SENTIMENT_PROJECT=""
 ```
 
 ```sh
 # predict dataset and save it's sentiment 
-python src/add_sentiment_chart.py --token=$TOKEN --project=$SENTIMENT_PROJECT --input=filtered.csv --results=$BRAND
+python src/add_sentiment_chart.py --token=$TOKEN --project=$SENTIMENT_PROJECT --input=news.csv --results=$BRAND
 
 # open sentiment html
 firefox $BRAND/index.html
