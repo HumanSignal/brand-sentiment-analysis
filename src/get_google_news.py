@@ -8,6 +8,7 @@ import html2text
 import re
 import pandas as pd
 
+from urllib.parse import quote
 from dateutil.parser import parse
 from GoogleNews import GoogleNews
 from readability import Document
@@ -18,9 +19,10 @@ def get_news(query=None, pages=1, *args, **kwargs):
     """
     if query is None:
         raise Exception()
-    
+
+    print(f'Start seaching query "{query}"')
     googlenews = GoogleNews()                                                                                              
-    googlenews.search(query)
+    googlenews.search(quote(query))
 
     news = []
     seen_texts = set()
