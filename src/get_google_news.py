@@ -51,10 +51,10 @@ if __name__=="__main__":
     
     parser.add_option('-q', '--query', action="store", dest="query", help="query string", default='Heartex')
     parser.add_option('-p', '--pages', action="store", type=int, dest="pages", default=10, help="number of pages to grab")
-    parser.add_option('-o', '--output', action="store", dest="output", default="news.csv", help="csv output filename")
+    parser.add_option('-o', '--output', action="store", dest="output", default="news.json", help="output JSON file")
     
     options, args = parser.parse_args()    
     news = get_news(**vars(options))
     
-    with io.open('news.json', mode='w') as fout:
+    with io.open(options.output, mode='w') as fout:
         json.dump([{'date': date, 'text': text} for date, text in news], fout, indent=2, ensure_ascii=False)
