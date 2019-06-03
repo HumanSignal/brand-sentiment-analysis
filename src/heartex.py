@@ -45,6 +45,9 @@ def publish_project(token=None, project=None):
 def run_predict(token=None, project=None, data=None, *args, **kwargs):
     """
     """
+    assert project is not None, 'Specify project number in heartex'
+    assert token is not None, 'Specify your token to heartex'
+    assert data is not None, 'Data must be set'
     res = requests.post(URL + '/api/projects/%d/predict/' % (project,),
                         json=data,
                         headers={
