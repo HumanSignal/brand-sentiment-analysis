@@ -1,8 +1,6 @@
 """
 """
 import optparse
-import json
-import io
 import requests
 import html2text
 import re
