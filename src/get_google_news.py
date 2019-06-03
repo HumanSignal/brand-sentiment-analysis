@@ -5,6 +5,8 @@ import json
 import io
 import requests
 import html2text
+import re
+import pandas as pd
 
 from dateutil.parser import parse
 from GoogleNews import GoogleNews
@@ -44,8 +46,9 @@ def get_news(query=None, pages=1, *args, **kwargs):
                 doc = Document(html)
                 text = h.handle(doc.summary())
                 if text not in seen_texts:
-                    news.append({'date': date, 'timestamp': timestamp, 'text': text})
                     seen_texts.add(text)
+                    text = re.sub(r'[\n\t]+', ' ', text)
+                    news.append({'date': date, 'timestamp': timestamp, 'text': text})
 
     return news
 
@@ -57,11 +60,10 @@ if __name__=="__main__":
     
     parser.add_option('-q', '--query', action="store", dest="query", help="query string", default='Heartex')
     parser.add_option('-p', '--pages', action="store", type=int, dest="pages", default=10, help="number of pages to grab")
-    parser.add_option('-o', '--output', action="store", dest="output", default="news.json", help="output JSON file")
+    parser.add_option('-o', '--output', action="store", dest="output", default="news.csv", help="output TSV file")
     
     options, args = parser.parse_args()    
     news = get_news(**vars(options))
-    
-    with io.open(options.output, mode='w') as fout:
-        json.dump(news, fout, indent=2, ensure_ascii=False)
+
+    pd.DataFrame.from_records(news).to_csv(options.output, sep='\t', index=False)
     print(f'{len(news)} news are dumped to {options.output}.')
