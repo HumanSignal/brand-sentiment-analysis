@@ -1,2 +1,4 @@
 GoogleNews==1.2.0
 requests==2.22.0
+html2text==2018.1.9
+readability-lxml==0.7.1
