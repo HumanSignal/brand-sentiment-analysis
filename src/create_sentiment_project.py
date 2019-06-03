@@ -9,6 +9,7 @@ CONFIG="""<View>
     <Choice value="Positive"></Choice>
     <Choice value="Netural"></Choice>
     <Choice value="Negative"></Choice>
+    <Choice value="Other"></Choice>
   </Choices>
 </View>"""
 
@@ -24,6 +25,6 @@ if __name__=="__main__":
     options, args = parser.parse_args()
     
     project = heartex.create_project(**vars(options), label_config=CONFIG, name="Brand Sentiment Project")
-
+    
     print("Visit this link and label:")
     print("https://go.heartex.net/expert/projects/%d/editor/" % (project, ))
