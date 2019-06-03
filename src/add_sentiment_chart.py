@@ -21,18 +21,23 @@ if __name__=="__main__":
     with open(options.input, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            data.append({ "news": row["news"] })
+            data.append({ "text": row["news"] })
 
+    pos = []
+    neg = []
     predictions = heartex.run_predict(**vars(options), data=data)
-    filtered = []
     
     for idx, p in enumerate(predictions.json()):
         if p['score'] > options.score:
             for row in p['result']:
-                if 'Relevant' in row['value']['labels']:
-                    filtered.append(data[idx])
-    
+                if 'Positive' in row['value']['choices']:
+                    pos.append(data[idx])
+                if 'Negative' in row['value']['choices']:
+                    neg.append(data[idx])
+                    
     print(len(predictions.json()))
-    print(len(filtered))
+    print(len(pos))
+    print(len(neg))
+    
 
 
