@@ -32,16 +32,10 @@ def get_news(query=None, pages=1, *args, **kwargs):
             try:
                 date = item['date']
                 timestamp = int(parse(date).timestamp())
-            except:
-                continue
-            link = item['link']
-            h = html2text.HTML2Text()
-            h.ignore_links = True
-            try:
+                link = item['link']
+                h = html2text.HTML2Text()
+                h.ignore_links = True
                 f = requests.get(link)
-            except:
-                continue
-            else:
                 html = f.text
                 doc = Document(html)
                 text = h.handle(doc.summary())
@@ -49,6 +43,8 @@ def get_news(query=None, pages=1, *args, **kwargs):
                     seen_texts.add(text)
                     text = re.sub(r'[\n\t]+', ' ', text)
                     news.append({'timestamp': timestamp, 'text': text})
+            except Exception as exc:
+                print(f'Exception while processing item {item}: {exc}')
 
     return news
 
