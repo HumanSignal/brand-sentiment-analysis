@@ -14,10 +14,12 @@ from readability import Document
 
 
 def parse_date(date):
+    m = re.match(r'^(\d+)\sminutes?\sago$', date)
     h = re.match(r'^(\d+)\shours?\sago$', date)
+    if m:
+        return int((datetime.now() - timedelta(minutes=int(m.group(1)))).timestamp())
     if h:
-        h = int(h.group(1))
-        return int((datetime.now() - timedelta(hours=h)).timestamp())
+        return int((datetime.now() - timedelta(hours=int(h.group(1)))).timestamp())
     else:
         return int(parse(date).timestamp())
 
