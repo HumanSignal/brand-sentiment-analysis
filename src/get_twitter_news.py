@@ -57,16 +57,17 @@ if __name__=="__main__":
     
     options, args = parser.parse_args()    
     news = get_news(**vars(options))
-    fieldnames = ['created_at', 'text']
+    fieldnames = ['created_at', 'news', 'username']
     
     with open(options.output, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames + ['username'])
+        writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
         writer.writeheader()
         
         for row in news:
-            data = {key: value for key, value in row.items()
-                    if key in fieldnames}
-            
-            data['username'] = row['user']['screen_name']
+            data = {
+                "news": row['text'],
+                "created_at": row['created_at'],
+                "username": row['user']['screen_name']
+            }
             
             writer.writerow(data)

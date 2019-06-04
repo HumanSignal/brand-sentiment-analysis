@@ -22,7 +22,7 @@ if __name__=="__main__":
     
     options, args = parser.parse_args()
     
-    project = heartex.create_project(**vars(options), label_config=CONFIG, name="Brand Filter Project")
-    o
+    project = heartex.new_project_setup(**vars(options), label_config=CONFIG, name="Brand Filter Project")
+    
     print("Visit this link and label:")
     print("https://go.heartex.net/expert/projects/%d/editor/" % (project, ))
