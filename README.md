@@ -57,10 +57,14 @@ To do that we will use another type of model which is called a tagger
 model. It learns when you tag relevant occurrences.
 
 ```sh
+PRODUCTS="Apple,iOS,iPadOS,watchOS,macOS,MacPro,Pro Display"
+```
+
+```sh
 # create Heartex project to filter news that are only relevent to your brand name
 
 # you will get back a link where you need to train a neural network a little bit to make it understand what is relevent to you
-python src/create_filter_project.py --token=$TOKEN --input=news.csv
+python src/create_filter_project.py --token=$TOKEN --input=news.csv --labels=$PRODUCTS
 
 # set project here
 export FILTER_PROJECT=""
@@ -68,7 +72,7 @@ export FILTER_PROJECT=""
 
 ```sh
 # get predictions
-python src/predict_and_filter.py --project=$FILTER_PROJECT --token=$TOKEN --output=filtered.csv
+python src/predict_and_filter.py --project=$FILTER_PROJECT --token=$TOKEN --output=filtered.csv --filter-labels=$PRODUCTS
 ```
 
 Now you have filtered.csv which you can use for further sentiment
