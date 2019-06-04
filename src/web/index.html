@@ -101,6 +101,7 @@
                 this.chart_instance.data.labels = this.chart_data.x;
                 this.chart_instance.data.datasets[0].data = this.chart_data.y;
                 this.chart_instance.update(500);
+                this.news = result['news'];
                 this.loading = false;
             },
 
@@ -114,10 +115,9 @@
                     'xAxisName': 'Time',
                     'yAxisName': 'Sentiment',
                     'labels': data.x,
-                    'title': '123',
                     'datasets': [{
                         data: data.y,
-                        fillColor: '#221c4d',
+                        backgroundColor: 'rgba(249,133,54,0.3)',
                         borderColor: '#f58a48',
                         // lineTension: 0
                     }]

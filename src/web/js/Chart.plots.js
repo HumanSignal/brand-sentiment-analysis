@@ -3,6 +3,8 @@
 */
 
 // default point radius
+Chart.defaults.global.defaultFontColor = '#aaa';
+Chart.defaults.global.defaultFontSize = '20';
 Chart.defaults.global.elements.point.radius = 0;
 Chart.defaults.global.elements.point.hitRadius = 1;
 Chart.defaults.global.elements.point.hoverBorderWidth = 1;
@@ -42,13 +44,27 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#ddd"
+                            color: "#444",
                         },
                         ticks: {
                             autoSkip: true,
-                            maxRotation: 75,
-                            minRotation: 75,
                             maxTicksLimit: 12,
+                            fontFamily: "'Lato', 'Helvetica Neue', Arial",
+                            fontSize: '16',
+                            fontColor: '#aaa'
+                        },
+                        time: {
+                            displayFormats: {
+                                'millisecond': 'MMM DD',
+                                'second': 'MMM DD',
+                                'minute': 'MMM DD',
+                                'hour': 'MMM DD',
+                                'day': 'MMM DD',
+                                'week': 'MMM DD',
+                                'month': 'MMM DD',
+                                'quarter': 'MMM DD',
+                                'year': 'MMM DD',
+                            }
                         }
                     }
                 ],
@@ -60,17 +76,15 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#ddd"
+                            color: "#444"
+                        },
+                        ticks: {
+                            fontFamily: "'Lato', 'Helvetica Neue', Arial",
+                            fontSize: '16',
+                            fontColor: '#aaa'
                         }
                     }
                 ]
-            },
-
-            pan: {
-                enabled: true,
-                mode: "xy",
-                speed: 10,
-                threshold: 10
             }
         }
     };
