@@ -6,10 +6,20 @@ import html2text
 import re
 import pandas as pd
 
+from datetime import datetime, timedelta
 from urllib.parse import quote
 from dateutil.parser import parse
 from GoogleNews import GoogleNews
 from readability import Document
+
+
+def parse_date(date):
+    h = re.match(r'^(\d+)\shours?\sago$', date)
+    if h:
+        h = int(h.group(1))
+        return int((datetime.now() - timedelta(hours=h)).timestamp())
+    else:
+        return int(parse(date).timestamp())
 
 
 def get_news(query=None, pages=1, *args, **kwargs):
@@ -30,8 +40,7 @@ def get_news(query=None, pages=1, *args, **kwargs):
         r = googlenews.result()
         for item in r:
             try:
-                date = item['date']
-                timestamp = int(parse(date).timestamp())
+                timestamp = parse_date(item['date'])
                 link = item['link']
                 h = html2text.HTML2Text()
                 h.ignore_links = True
@@ -54,7 +63,7 @@ if __name__=="__main__":
     """
     parser = optparse.OptionParser()
     
-    parser.add_option('-q', '--query', action="store", dest="query", help="query string", default='Heartex')
+    parser.add_option('-q', '--query', action="store", dest="query", help="query string")
     parser.add_option('-p', '--pages', action="store", type=int, dest="pages", default=10, help="number of pages to grab")
     parser.add_option('-o', '--output', action="store", dest="output", default="news.csv", help="output CSV file")
     
