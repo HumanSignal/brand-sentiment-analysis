@@ -23,8 +23,7 @@ if __name__=="__main__":
     parser.add_option('-i', '--input', action="store", dest="input", default="filtered.csv", help="input file name")
     
     options, args = parser.parse_args()
-    
-    project = heartex.create_project(**vars(options), label_config=CONFIG, name="Brand Sentiment Project")
+    project = heartex.new_project_setup(**vars(options), label_config=CONFIG, name="Brand Sentiment Project")
     
     print("Visit this link and label:")
     print("https://go.heartex.net/expert/projects/%d/editor/" % (project, ))

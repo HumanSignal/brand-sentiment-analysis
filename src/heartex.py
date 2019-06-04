@@ -1,4 +1,5 @@
-
+"""
+"""
 import requests
 
 URL = "https://go.heartex.net"
@@ -57,14 +58,14 @@ def run_predict(token=None, project=None, data=None, *args, **kwargs):
     
     return res
 
-def create_project(token=None, label_config=None, input=None, name=None,
-                   *args, **kwargs):
+def new_project_setup(token=None, label_config=None, input=None, name=None,
+                      *args, **kwargs):
     """
     """
-    pk = heartex.create_project(token=token, label_config=label_config, name=name)
+    pk = create_project(token=token, label_config=label_config, name=name)
     
-    heartex.upload_data(token=token, input=input, project=pk)
-    heartex.publish_project(token=token, project=pk)
+    upload_data(token=token, input=input, project=pk)
+    publish_project(token=token, project=pk)
     
     return pk
 
