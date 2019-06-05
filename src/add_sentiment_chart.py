@@ -59,7 +59,7 @@ def run(options):
     x, y = resample_by_time(times, values, options.period)
 
     # save output
-    output = {'data': data, 'chart': {'x': x, 'y': y}}
+    output = {'news': data, 'chart': {'x': x, 'y': y}}
     with open(options.output, 'w') as f:
         json.dump(output, f)
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     parser.add_option('-i', '--input', dest='input', default='news.csv', help='input file name')
     parser.add_option('-s', '--score', type=float, dest='score', default=0.50, help='score used to filter')
     parser.add_option('-d', '--period', dest='period', default='1D', help='pandas period: 1T (minute), 1H, 1D, 1M, 1Y')
-    parser.add_option('-o', '--output', dest='output', default='output.json', help='output filename for charts')
+    parser.add_option('-o', '--output', dest='output', default='web/data/output.json', help='output filename for charts')
     parser.add_option('-l', '--loop', action='store_true', dest='loop', default=False, help='run in loop')
     
     options, args = parser.parse_args()

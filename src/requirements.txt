@@ -1,0 +1,17 @@
+beautifulsoup4==4.7.1
+certifi==2019.3.9
+chardet==3.0.4
+cssselect==1.0.3
+GoogleNews==1.2.0
+html2text==2018.1.9
+idna==2.8
+lxml==4.3.3
+numpy==1.16.4
+pandas==0.24.2
+python-dateutil==2.8.0
+pytz==2019.1
+readability-lxml==0.7.1
+requests==2.22.0
+six==1.12.0
+soupsieve==1.9.1
+urllib3==1.25.3

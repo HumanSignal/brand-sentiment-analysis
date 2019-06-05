@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Heartex Sentiments</title>
+    <meta content="width=device-width, initial-scale=0.66" name="viewport">
+
+    <link href="semantic-ui/semantic.min.css" rel="stylesheet" type="text/css"/>
+
+    <style>
+        body {
+            background: #221c4d;
+        }
+        div {
+            color: #EEE !important;
+        }
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            font-size: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app" class="ui page">
+
+    <!-- Canvas -->
+    <div style="width:98%;" class="ui basic segment" id="canvas-container">
+        <div class="ui large text loader" :class="{active: loading}"></div>
+        <canvas id="canvas-1"></canvas>
+    </div>
+
+    <div class="ui news" id="news">
+    </div>
+
+    <!-- Statistics -->
+    <div class="ui center aligned grid">
+        <div class="ui one column statistics">
+            <div class="statistic">
+                <div class="value">{{ this.news.length }}</div>
+                <div class="label">News processed</div>
+            </div>
+
+            <div class="ui statistic">
+                <div class="value">Sentiment Analysis</div>
+                <div class="label">Based on Heartex AI platform</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/Chart.bundle.min.js"></script>
+<script src="js/Chart.plots.js"></script>
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/DateFormat.js?v2"></script>
+<script src="semantic-ui/semantic.min.js"></script>
+
+<script>
+    const data_path = 'data/output.json';
+    const chart_id = 'canvas-1';
+
+    // resize corresponding to window height
+    $(window).resize(function () {
+        $('#canvas-container').height($(window).height() * 0.6);
+        $('#canvas-1').height($(window).height() * 0.6);
+        $('#news').height($(window).height() * 0.2);
+    });
+    $(window).resize();
+
+    function print(o) {
+        console.log(o)
+    }
+
+    var app = new Vue({
+        el: '#app',
+
+        data() {
+            return {
+                loading: true,
+                chart_instance: null,
+                chart_data: null,
+                news: [],
+                timer: null
+            }
+        },
+
+        methods: {
+            reset() {
+                Object.assign(this.$data, this.$options.data.apply(this));
+            },
+
+            updateByTimer() {
+                let result = JSON.parse($.get({url: data_path + '?rnd=' + Math.random(), async: false}).responseText);
+                this.chart_data = result['chart'];
+
+                // update chart_instance
+                this.chart_instance.data.labels = this.chart_data.x;
+                this.chart_instance.data.datasets[0].data = this.chart_data.y;
+                this.chart_instance.update(500);
+                this.news = result['news'];
+                this.loading = false;
+            },
+
+            // build data for chart_instance.js
+            build_chart_config(data) {
+                // prepare plot
+                let plot = {
+                    'type': 'line',
+                    'timeFormat': 'YYYY-MM-DDTHH:mm:ssZ',
+                    'title': 'Sentiment',
+                    'xAxisName': 'Time',
+                    'yAxisName': 'Sentiment',
+                    'labels': data.x,
+                    'datasets': [{
+                        data: data.y,
+                        backgroundColor: 'rgba(249,133,54,0.3)',
+                        borderColor: '#f58a48',
+                        // lineTension: 0
+                    }]
+                };
+
+                // make config and mount
+                return configTimeSeries(plot);
+            }
+        },
+
+        watch: {
+            // watch for root.chart_data var and call it when it changes
+            chart_data() {
+                this.chart_instance.data.labels = this.chart_data.x;
+                this.chart_instance.data.datasets[0].y = this.chart_data.y;
+                this.chart_instance.update(0);
+                console.log('chart_instance js updated');
+            }
+        },
+
+        mounted() {
+            this.loading = true;
+            let ctx = document.getElementById(chart_id).getContext('2d');
+            let chart_config = this.build_chart_config({x: [], y: []});
+            this.chart_instance = new Chart(ctx, chart_config);
+
+            // setup timer for data update
+            this.updateByTimer();
+            this.timer = setInterval(this.updateByTimer, 1000);
+            console.log('chart_instance js init success');
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
