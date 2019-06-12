@@ -1,0 +1,47 @@
+{
+  "port": 8000,
+  "debug": true,
+
+  "heartex": {
+    "token": "<place your token here>",
+    "sentiment_project_id": 1
+  },
+
+  "logger": {
+    "version": 1,
+    "handlers": {
+      "console": {
+        "class": "logging.StreamHandler",
+        "level": "DEBUG",
+        "stream": "ext://sys.stdout"
+      },
+      "file": {
+        "class": "logging.FileHandler",
+        "level": "DEBUG",
+        "filename": "static/logs/messages.log"
+      }
+    },
+    "loggers": {
+      "console": {
+        "level": "DEBUG",
+        "handlers": [
+          "console"
+        ],
+        "propagate": "no"
+      },
+      "service": {
+        "level": "DEBUG",
+        "handlers": [
+          "file"
+        ],
+        "propagate": "no"
+      }
+    },
+    "root": {
+      "level": "DEBUG",
+      "handlers": [
+        "console"
+      ]
+    }
+  }
+}

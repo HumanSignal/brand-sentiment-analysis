@@ -3,21 +3,27 @@
 <head>
     <title>Heartex Sentiments</title>
     <meta content="width=device-width, initial-scale=0.66" name="viewport">
-
     <link href="semantic-ui/semantic.min.css" rel="stylesheet" type="text/css"/>
 
     <style>
         body {
             background: #221c4d;
         }
+
         div {
             color: #EEE !important;
         }
+
         canvas {
             -moz-user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
             font-size: 100%;
+        }
+
+        .query {
+            text-align: center;
+            font-size: 130% !important;
         }
     </style>
 </head>
@@ -25,9 +31,15 @@
 <body>
 <div id="app" class="ui page">
 
+    <!-- Input field -->
+    <div class="ui form" style="margin: 1em 3em 3em 3em">
+        <input v-model="query" class="ui input query" type="text"
+               placeholder="Enter your keyword here to start sentiment analysis"/>
+    </div>
+
     <!-- Canvas -->
     <div style="width:98%;" class="ui basic segment" id="canvas-container">
-        <div class="ui large text loader" :class="{active: loading}"></div>
+        <div class="ui large text loader inverted" :class="{active: loading}"></div>
         <canvas id="canvas-1"></canvas>
     </div>
 
@@ -56,7 +68,7 @@
 
 <script src="js/jquery-3.3.1.min.js"></script>
 <script src="js/vue.js"></script>
-<script src="js/DateFormat.js?v2"></script>
+<script src="js/DateFormat.js"></script>
 <script src="semantic-ui/semantic.min.js"></script>
 
 <script>
@@ -65,8 +77,8 @@
 
     // resize corresponding to window height
     $(window).resize(function () {
-        $('#canvas-container').height($(window).height() * 0.6);
-        $('#canvas-1').height($(window).height() * 0.6);
+        $('#canvas-container').height($(window).height() * 0.4);
+        $('#canvas-1').height($(window).height() * 0.4);
         $('#news').height($(window).height() * 0.2);
     });
     $(window).resize();
@@ -75,6 +87,13 @@
         console.log(o)
     }
 
+    // check vue for browser compability
+    var compatibleBrowser = typeof Object['__defineSetter__'] === 'function';
+    if (!compatibleBrowser) {
+        alert('Sorry, but your browser has no Vue compatibility!');
+    }
+
+    // Vue app implementation
     var app = new Vue({
         el: '#app',
 
@@ -84,7 +103,9 @@
                 chart_instance: null,
                 chart_data: null,
                 news: [],
-                timer: null
+                timer: null,
+                query: "",
+                start_date: ""
             }
         },
 
@@ -93,7 +114,16 @@
                 Object.assign(this.$data, this.$options.data.apply(this));
             },
 
-            updateByTimer() {
+            calculate_start_date() {
+                const today = new Date();
+                let start = new Date();
+                let dateOffset = 1000 * 60 * 60 * 24 * 30; // 30 days back
+                start.setTime(today.getTime() - dateOffset);
+                this.start_date = start.format('yyyy-mm-ddTHH:MM:ssZ');
+                return this.start_date;
+            },
+
+            update_data() {
                 let result = JSON.parse($.get({url: data_path + '?rnd=' + Math.random(), async: false}).responseText);
                 this.chart_data = result['chart'];
 
@@ -107,6 +137,7 @@
 
             // build data for chart_instance.js
             build_chart_config(data) {
+
                 // prepare plot
                 let plot = {
                     'type': 'line',
@@ -119,12 +150,32 @@
                         data: data.y,
                         backgroundColor: 'rgba(249,133,54,0.3)',
                         borderColor: '#f58a48',
-                        // lineTension: 0
                     }]
                 };
 
-                // make config and mount
+                // prepare full Chart.js config
                 return configTimeSeries(plot);
+            },
+
+            build_sentiment() {
+                this.loading = true;
+
+                // send request to build new sentiment analysis around query
+                $.ajax({
+                    url: '/api/build-sentiment',
+                    data: {
+                        'query': this.query,
+                        'start_date': this.calculate_start_date()
+
+                    }
+                }).done(result => {
+                    print('build-sentiment ok');
+                    this.loading = false;
+                }).fail(result => {
+                    print('build-sentiment fail');
+                    print(result);
+                    this.loading = false;
+                });
             }
         },
 
@@ -134,20 +185,27 @@
                 this.chart_instance.data.labels = this.chart_data.x;
                 this.chart_instance.data.datasets[0].y = this.chart_data.y;
                 this.chart_instance.update(0);
-                console.log('chart_instance js updated');
+            },
+
+            // watch for realtime query changes
+            query() {
+                this.build_sentiment()
             }
         },
 
+        // vue mounting of page
         mounted() {
             this.loading = true;
+
+            // mount Chart.js
             let ctx = document.getElementById(chart_id).getContext('2d');
             let chart_config = this.build_chart_config({x: [], y: []});
             this.chart_instance = new Chart(ctx, chart_config);
 
             // setup timer for data update
-            this.updateByTimer();
-            this.timer = setInterval(this.updateByTimer, 1000);
-            console.log('chart_instance js init success');
+            this.update_data();
+            // this.timer = setInterval(this.update_data, 1000);
+            console.log('mounting of Chart.js and init success');
         }
 
     });
