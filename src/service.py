@@ -137,7 +137,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
                     pass
 
         # normalize
-        if total > 5:
+        if total > 2:
             tweet['sentiment'] /= float(total)
         else:
             tweet['sentiment'] = 0  # disregard if there are too few replies
@@ -173,7 +173,7 @@ def api_build_sentiment():
     :return: json with plot data
     """
     query = request.args['query']
-    if len(query) < 3:
+    if len(query) < 2:
         return answer(422, 'small request', None)
     start_date = request.args['start_date']
     log.info('New query: %s' % str(request.args))
