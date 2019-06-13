@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 import traceback as tb
 import datetime
 import logging.config
@@ -26,7 +26,8 @@ def answer(status=0, msg='', result=None):
 
     if result is not None:
         a.update({"result": result})
-    return jsonify(a)
+
+    return make_response(jsonify(a), status)
 
 
 # make an answer as exception

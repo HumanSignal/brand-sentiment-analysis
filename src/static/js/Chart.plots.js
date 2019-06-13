@@ -44,7 +44,7 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#444",
+                            color: "#aaa"
                         },
                         ticks: {
                             autoSkip: true,
@@ -76,7 +76,7 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#444"
+                            color: "#aaa"
                         },
                         ticks: {
                             fontFamily: "'Lato', 'Helvetica Neue', Arial",

@@ -25,6 +25,19 @@
             text-align: center;
             font-size: 130% !important;
         }
+
+        a div:hover {
+            color: chocolate !important;
+        }
+
+        .news-item {
+            margin-bottom: 1%;
+            color: #ccc;
+        }
+        .news-time {
+            color: #ccc !important;
+            background: #28206c !important;
+        }
     </style>
 </head>
 
@@ -43,21 +56,36 @@
         <canvas id="canvas-1"></canvas>
     </div>
 
-    <div class="ui news" id="news">
+    <div class="ui container news" id="news">
+        <ul>
+            <div v-for="item in this.news.slice(this.news.length-4, this.news.length).reverse()" class="news-item">
+                <div class="ui tiny label news-time">
+                    {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
+                </div> &nbsp;
+                {{ item['text'] }}
+            </div>
+        </ul>
     </div>
 
     <!-- Statistics -->
     <div class="ui center aligned grid">
-        <div class="ui one column statistics">
+        <div class="ui three column statistics">
             <div class="statistic">
                 <div class="value">{{ this.news.length }}</div>
                 <div class="label">News processed</div>
             </div>
 
-            <div class="ui statistic">
-                <div class="value">Sentiment Analysis</div>
-                <div class="label">Based on Heartex AI platform</div>
+            <div class="statistic">
+                <div class="value">{{ repliesNumber }}</div>
+                <div class="label">Replies analyzed</div>
             </div>
+
+            <a href="https://heartex.net">
+                <div class="ui statistic">
+                    <div class="value">Sentiment Analysis</div>
+                    <div class="label">Based on Heartex AI platform</div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -72,7 +100,7 @@
 <script src="semantic-ui/semantic.min.js"></script>
 
 <script>
-    const data_path = 'data/output.json';
+    const data_path = 'api/build-sentiment';
     const chart_id = 'canvas-1';
 
     // resize corresponding to window height
@@ -93,6 +121,23 @@
         alert('Sorry, but your browser has no Vue compatibility!');
     }
 
+    // delayed function call
+    let timeout;
+    function debounce(func, wait, immediate) {
+        return function () {
+            const context = this, args = arguments;
+            const later = () => {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            const callNow = immediate && !timeout;
+
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    }
+
     // Vue app implementation
     var app = new Vue({
         el: '#app',
@@ -104,7 +149,7 @@
                 chart_data: null,
                 news: [],
                 timer: null,
-                query: "",
+                query: "Putin",
                 start_date: ""
             }
         },
@@ -119,20 +164,42 @@
                 let start = new Date();
                 let dateOffset = 1000 * 60 * 60 * 24 * 30; // 30 days back
                 start.setTime(today.getTime() - dateOffset);
-                this.start_date = start.format('yyyy-mm-ddTHH:MM:ssZ');
+                this.start_date = start/1000;
                 return this.start_date;
             },
 
-            update_data() {
-                let result = JSON.parse($.get({url: data_path + '?rnd=' + Math.random(), async: false}).responseText);
-                this.chart_data = result['chart'];
+            update_plot() {
+                this.loading = true;
 
-                // update chart_instance
-                this.chart_instance.data.labels = this.chart_data.x;
-                this.chart_instance.data.datasets[0].data = this.chart_data.y;
-                this.chart_instance.update(500);
-                this.news = result['news'];
-                this.loading = false;
+                $.get({
+                    url: '/api/build-sentiment',
+                    data: {
+                        'query': this.query,
+                        'start_date': this.calculate_start_date()
+                    },
+                }).done((response) => {
+                    let result = response['result'];
+                    this.chart_data = result['chart'];
+                    print(response);
+
+                    // update chart_instance
+                    this.chart_instance.data.labels = this.chart_data.x;
+                    this.chart_instance.data.datasets[0].data = this.chart_data.y;
+                    this.chart_instance.update(500);
+                    this.news = result['news'];
+                    this.loading = false;
+                }).fail((response) => {
+                    this.loading = false;
+
+                    // too small request
+                    if (response.status === 422)
+                        return;
+
+                    // some error on backend
+                    alert('Error on backend, see more in console');
+                    print(response)
+                });
+
             },
 
             // build data for chart_instance.js
@@ -156,26 +223,14 @@
                 // prepare full Chart.js config
                 return configTimeSeries(plot);
             },
+        },
 
-            build_sentiment() {
-                this.loading = true;
-
-                // send request to build new sentiment analysis around query
-                $.ajax({
-                    url: '/api/build-sentiment',
-                    data: {
-                        'query': this.query,
-                        'start_date': this.calculate_start_date()
-
-                    }
-                }).done(result => {
-                    print('build-sentiment ok');
-                    this.loading = false;
-                }).fail(result => {
-                    print('build-sentiment fail');
-                    print(result);
-                    this.loading = false;
-                });
+        computed: {
+            repliesNumber() {
+                let total = 0;
+                for (let i=0; i < this.news.length; i++)
+                    total += this.news[i]['replies'].length;
+                return total;
             }
         },
 
@@ -189,7 +244,7 @@
 
             // watch for realtime query changes
             query() {
-                this.build_sentiment()
+                debounce(this.update_plot, 500, false)();
             }
         },
 
@@ -203,8 +258,8 @@
             this.chart_instance = new Chart(ctx, chart_config);
 
             // setup timer for data update
-            this.update_data();
-            // this.timer = setInterval(this.update_data, 1000);
+            this.update_plot();
+            // this.timer = setInterval(this.update_plot, 1000);
             console.log('mounting of Chart.js and init success');
         }
 

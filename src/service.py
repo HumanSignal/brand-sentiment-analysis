@@ -3,8 +3,9 @@
 import sys
 import flask
 import json  # it MUST be included after flask!
-import pandas as pd
 import heartex
+import requests
+import pandas as pd
 
 from datetime import datetime as datetime
 from flask import request
@@ -47,10 +48,17 @@ def index():
 def get_tweets_from_database(query, start_date):
     """ Insert here request to your DB
     """
-    return [
-        {'text': 'cat runs', 'replies': ['bad', 'bad'], 'created_at': 'Thu May 23 18:03:00 +0000 2019'},
-        {'text': 'dog stops', 'replies': ['awesome', 'super'], 'created_at': 'Fri Jun 07 13:45:00 +0000 2019'}
-    ]
+    '''return [
+            {'text': 'cat runs', 'replies': ['bad', 'bad'], 'created_at': 123},
+            {'text': 'dog stops', 'replies': ['awesome', 'super'], 'created_at': 567}
+        ]'''
+
+    result = requests.get('http://tweets.makseq.com/api/tweets', params={'query': query, 'start_date': start_date})
+    if result.status_code == 200:
+        tweets = json.loads(result.content)
+        return tweets
+    else:
+        raise Exception('Tweets DB error')
 
 
 def resampling_by_time(times, values, period):
@@ -91,7 +99,6 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
 
     # heartex predict
     predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
-    print(predictions)
 
     # unpack tasks back
     count = 0
@@ -117,10 +124,13 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
                     tweet['value'] -= 1
 
             # normalize
-            tweet['value'] /= float(total)
+            if total > 5:
+                tweet['value'] /= float(total)
+            else:
+                tweet['value'] = 0  # disregard if there are too few replies
 
     # resampling
-    times = [datetime.strptime(d['created_at'], '%a %b %d %H:%M:%S +0000 %Y').timestamp() for d in data]
+    times = [d['created_at'] for d in data]
     values = [d['value'] for d in data]
     x, y = resampling_by_time(times, values, period)
 
@@ -139,12 +149,17 @@ def api_build_sentiment():
     :return: json with plot data
     """
     query = request.args['query']
+    if len(query) < 3:
+        return answer(422, 'small request', None)
     start_date = request.args['start_date']
+    log.info('New query: %s' % str(request.args))
 
     tweets = get_tweets_from_database(query, start_date)
-    output = heartex_build_plot(tweets)
+    log.info('Tweets found in DB %i' % len(tweets))
 
-    log.info('New query: %s' % str(request.args))
+    output = heartex_build_plot(tweets)
+    log.info('Heartex prediction completed')
+    
     return answer(200, 'ok', output)
 
 
