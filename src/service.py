@@ -53,6 +53,9 @@ def get_tweets_from_database(query, start_date):
             {'text': 'dog stops', 'replies': ['awesome', 'super'], 'created_at': 567}
         ]'''
 
+    if query == 'model:"Apple Watch"':
+        query = 'Apple Watch'
+
     result = requests.get('http://tweets.makseq.com/api/tweets', params={'query': query, 'start_date': start_date})
     if result.status_code == 200:
         tweets = json.loads(result.content)
@@ -111,30 +114,51 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
     # collect score values (positives & negatives)
     for tweet in data:
         total = 0
-        tweet['value'] = 0
+        tweet['sentiment'] = 0
+        tweet['positives'] = 0
+        tweet['negatives'] = 0
 
+        # walk by predictions
         for prediction in tweet['predictions']:
             if prediction['score'] > threshold_score:
-                total += 1
 
                 if 'Positive' in prediction['result'][0]['value']['choices']:
-                    tweet['value'] += 1
+                    total += 1
+                    tweet['sentiment'] += 1
+                    tweet['positives'] += 1
 
-                if 'Negative' in prediction['result'][0]['value']['choices']:
-                    tweet['value'] -= 1
+                elif 'Negative' in prediction['result'][0]['value']['choices']:
+                    total += 1
+                    tweet['sentiment'] -= 1
+                    tweet['negatives'] -= 1
 
-            # normalize
-            if total > 5:
-                tweet['value'] /= float(total)
-            else:
-                tweet['value'] = 0  # disregard if there are too few replies
+                # neutral
+                else:
+                    pass
 
-    # resampling
+        # normalize
+        if total > 5:
+            tweet['sentiment'] /= float(total)
+        else:
+            tweet['sentiment'] = 0  # disregard if there are too few replies
+
+    # resampling sentiment
     times = [d['created_at'] for d in data]
-    values = [d['value'] for d in data]
-    x, y = resampling_by_time(times, values, period)
+    sentiment = [d['sentiment'] for d in data]
+    sentiment_x, sentiment_y = resampling_by_time(times, sentiment, period)
 
-    return {'news': data, 'chart': {'x': x, 'y': y}}
+    # resampling positives
+    positives = [d['positives'] for d in data]
+    positives_x, positives_y = resampling_by_time(times, sentiment, period)
+
+    # resampling negatives
+    negatives = [d['negatives'] for d in data]
+    negatives_x, negatives_y = resampling_by_time(times, sentiment, period)
+
+    return {'news': data,
+            'chart_sentiment': {'x': sentiment_x, 'y': sentiment_y},
+            'chart_positives': {'x': positives_x, 'y': positives_y},
+            'chart_negatives': {'x': negatives_x, 'y': negatives_y}}
 
 
 @app.route('/api/build-sentiment', methods=['GET'])

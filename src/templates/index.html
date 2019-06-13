@@ -25,11 +25,19 @@
             text-align: center;
             font-size: 130% !important;
         }
-
+        a div {
+            transition: all .8s ease;
+            -webkit-transition: all .8s ease;
+        }
         a div:hover {
             color: chocolate !important;
+            transition: all .8s ease;
+            -webkit-transition: all .8s ease;
         }
 
+        #news {
+            margin-top: 4em;
+        }
         .news-item {
             margin-bottom: 1%;
             color: #ccc;
@@ -45,26 +53,19 @@
 <div id="app" class="ui page">
 
     <!-- Input field -->
-    <div class="ui form" style="margin: 1em 3em 3em 3em">
-        <input v-model="query" class="ui input query" type="text"
-               placeholder="Enter your keyword here to start sentiment analysis"/>
+    <div class="ui container">
+        <div class="ui form" style="margin: 1em 0 0.5em 0">
+            <input v-model="query" class="ui input query" type="text"
+                   placeholder="Enter keyword or use AI models below for entity smart search "/>
+        </div>
+
+        <div class="ui button orange model-button" v-on:click="use_ml_query('Apple Watch')">Apple Watch</div>
     </div>
 
     <!-- Canvas -->
-    <div style="width:98%;" class="ui basic segment" id="canvas-container">
+    <div style="width:98%;" class="ui basic segment" id="canvas-container" v-on:dblclick="update_plot()">
         <div class="ui large text loader inverted" :class="{active: loading}"></div>
         <canvas id="canvas-1"></canvas>
-    </div>
-
-    <div class="ui container news" id="news">
-        <ul>
-            <div v-for="item in this.news.slice(this.news.length-4, this.news.length).reverse()" class="news-item">
-                <div class="ui tiny label news-time">
-                    {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
-                </div> &nbsp;
-                {{ item['text'] }}
-            </div>
-        </ul>
     </div>
 
     <!-- Statistics -->
@@ -87,6 +88,18 @@
                 </div>
             </a>
         </div>
+    </div>
+
+    <!-- News feed -->
+    <div class="ui container news" id="news">
+        <ul>
+            <div v-for="item in this.news.slice(this.news.length-50, this.news.length).reverse()" class="news-item">
+                <div class="ui tiny label news-time">
+                    {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
+                </div> &nbsp;
+                {{ item['text'] }}
+            </div>
+        </ul>
     </div>
 
 </div>
@@ -146,17 +159,22 @@
             return {
                 loading: true,
                 chart_instance: null,
-                chart_data: null,
+                chart_sentiment: null,
                 news: [],
                 timer: null,
-                query: "Putin",
-                start_date: ""
+                query: "",
+                start_date: "",
+                current_request_id: 0
             }
         },
 
         methods: {
             reset() {
                 Object.assign(this.$data, this.$options.data.apply(this));
+            },
+
+            use_ml_query(model_name) {
+                this.query = 'model:"' + model_name + '"'
             },
 
             calculate_start_date() {
@@ -170,6 +188,9 @@
 
             update_plot() {
                 this.loading = true;
+                this.current_request_id++;
+                let root = this;
+                let local_request_id = this.current_request_id;
 
                 $.get({
                     url: '/api/build-sentiment',
@@ -177,17 +198,23 @@
                         'query': this.query,
                         'start_date': this.calculate_start_date()
                     },
+
                 }).done((response) => {
+                    // avoid outdated requests
+                    if (local_request_id !== root.current_request_id)
+                        return;
+
                     let result = response['result'];
-                    this.chart_data = result['chart'];
+                    this.chart_sentiment = result['chart_sentiment'];
                     print(response);
 
                     // update chart_instance
-                    this.chart_instance.data.labels = this.chart_data.x;
-                    this.chart_instance.data.datasets[0].data = this.chart_data.y;
-                    this.chart_instance.update(500);
+                    this.chart_instance.data.labels = this.chart_sentiment.x;
+                    this.chart_instance.data.datasets[0].data = this.chart_sentiment.y;
+                    this.chart_instance.update(1000);
                     this.news = result['news'];
                     this.loading = false;
+
                 }).fail((response) => {
                     this.loading = false;
 
@@ -235,13 +262,6 @@
         },
 
         watch: {
-            // watch for root.chart_data var and call it when it changes
-            chart_data() {
-                this.chart_instance.data.labels = this.chart_data.x;
-                this.chart_instance.data.datasets[0].y = this.chart_data.y;
-                this.chart_instance.update(0);
-            },
-
             // watch for realtime query changes
             query() {
                 debounce(this.update_plot, 500, false)();
@@ -259,7 +279,7 @@
 
             // setup timer for data update
             this.update_plot();
-            // this.timer = setInterval(this.update_plot, 1000);
+            //this.timer = setInterval(this.update_plot, 30000);
             console.log('mounting of Chart.js and init success');
         }
 

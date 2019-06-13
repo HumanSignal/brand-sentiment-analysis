@@ -33,7 +33,11 @@ function configTimeSeries(plot) {
                 display: false,
                 text: plot.title
             },
-
+            animation: {
+                duration: 1.0,
+                easing: 'easeInOutQuad'
+            },
+            animationEasing: 'easeInOutQuad',
             scales: {
                 xAxes: [
                     {
