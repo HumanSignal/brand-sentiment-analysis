@@ -113,7 +113,7 @@
 <script src="semantic-ui/semantic.min.js"></script>
 
 <script>
-    const data_path = 'api/build-sentiment';
+    const api_path = 'api/build-sentiment';
     const chart_id = 'canvas-1';
 
     // resize corresponding to window height
@@ -193,7 +193,7 @@
                 let local_request_id = this.current_request_id;
 
                 $.get({
-                    url: '/api/build-sentiment',
+                    url: api_path,
                     data: {
                         'query': this.query,
                         'start_date': this.calculate_start_date()
