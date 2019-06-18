@@ -132,7 +132,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
                 elif 'Negative' in prediction['result'][0]['value']['choices']:
                     total += 1
                     tweet['sentiment'] -= 1
-                    tweet['negatives'] -= 1
+                    tweet['negatives'] += 1
 
                 # neutral
                 else:
