@@ -103,7 +103,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
     # heartex predict
     predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
     if not isinstance(predictions, list):
-        raise Exception('Predictions are incorrect: ' + str(predictions))
+        log.warning('No predictions by ML backend returned')
 
     # unpack tasks back
     count = 0
