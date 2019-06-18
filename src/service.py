@@ -102,6 +102,8 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
 
     # heartex predict
     predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
+    if not isinstance(predictions, list):
+        raise Exception('Predictions are incorrect: ' + str(predictions))
 
     # unpack tasks back
     count = 0
@@ -149,11 +151,11 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
 
     # resampling positives
     positives = [d['positives'] for d in data]
-    positives_x, positives_y = resampling_by_time(times, sentiment, period)
+    positives_x, positives_y = resampling_by_time(times, positives, period)
 
     # resampling negatives
     negatives = [d['negatives'] for d in data]
-    negatives_x, negatives_y = resampling_by_time(times, sentiment, period)
+    negatives_x, negatives_y = resampling_by_time(times, negatives, period)
 
     return {'news': data,
             'chart_sentiment': {'x': sentiment_x, 'y': sentiment_y},

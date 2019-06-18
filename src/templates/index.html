@@ -25,10 +25,12 @@
             text-align: center;
             font-size: 130% !important;
         }
+
         a div {
             transition: all .8s ease;
             -webkit-transition: all .8s ease;
         }
+
         a div:hover {
             color: chocolate !important;
             transition: all .8s ease;
@@ -38,13 +40,21 @@
         #news {
             margin-top: 4em;
         }
+
         .news-item {
             margin-bottom: 1%;
             color: #ccc;
         }
+
         .news-time {
             color: #ccc !important;
             background: #28206c !important;
+            margin-right: 0.2em;
+        }
+        .news-sentiment {
+            color: #ccc !important;
+            background: #28206c !important;
+            margin-right: 0.2em;
         }
     </style>
 </head>
@@ -96,7 +106,12 @@
             <div v-for="item in this.news.slice(this.news.length-50, this.news.length).reverse()" class="news-item">
                 <div class="ui tiny label news-time">
                     {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
-                </div> &nbsp;
+                </div>
+                <div class="ui tiny label news-sentiment">
+                    {{ item['positives'] }} <i class="ui icon thumbs up outline"></i>
+                    {{ -item['negatives'] }} <i class="ui icon thumbs down outline"
+                                                style="margin-right:0 !important;"></i>
+                </div>
                 {{ item['text'] }}
             </div>
         </ul>
@@ -136,6 +151,7 @@
 
     // delayed function call
     let timeout;
+
     function debounce(func, wait, immediate) {
         return function () {
             const context = this, args = arguments;
@@ -159,10 +175,9 @@
             return {
                 loading: true,
                 chart_instance: null,
-                chart_sentiment: null,
                 news: [],
                 timer: null,
-                query: "",
+                query: "Putin",
                 start_date: "",
                 current_request_id: 0
             }
@@ -182,7 +197,7 @@
                 let start = new Date();
                 let dateOffset = 1000 * 60 * 60 * 24 * 30; // 30 days back
                 start.setTime(today.getTime() - dateOffset);
-                this.start_date = start/1000;
+                this.start_date = start / 1000;
                 return this.start_date;
             },
 
@@ -205,12 +220,12 @@
                         return;
 
                     let result = response['result'];
-                    this.chart_sentiment = result['chart_sentiment'];
                     print(response);
 
                     // update chart_instance
-                    this.chart_instance.data.labels = this.chart_sentiment.x;
-                    this.chart_instance.data.datasets[0].data = this.chart_sentiment.y;
+                    this.chart_instance.data.labels = result.chart_sentiment.x;
+                    this.chart_instance.data.datasets[0].data = result.chart_positives.y;
+                    this.chart_instance.data.datasets[1].data = result.chart_negatives.y;
                     this.chart_instance.update(1000);
                     this.news = result['news'];
                     this.loading = false;
@@ -230,7 +245,7 @@
             },
 
             // build data for chart_instance.js
-            build_chart_config(data) {
+            build_chart_config() {
 
                 // prepare plot
                 let plot = {
@@ -239,12 +254,21 @@
                     'title': 'Sentiment',
                     'xAxisName': 'Time',
                     'yAxisName': 'Sentiment',
-                    'labels': data.x,
-                    'datasets': [{
-                        data: data.y,
-                        backgroundColor: 'rgba(249,133,54,0.3)',
-                        borderColor: '#f58a48',
-                    }]
+                    'labels': [],
+                    'datasets': [
+                        {
+                            data: [],
+                            lineTension: 0.0,
+                            backgroundColor: 'rgba(108,202,134,0.3)',
+                            borderColor: '#6cca86',
+                        },
+                        {
+                            data: [],
+                            lineTension: 0.0,
+                            backgroundColor: 'rgba(249,133,54,0.3)',
+                            borderColor: '#f58a48',
+                        }
+                    ]
                 };
 
                 // prepare full Chart.js config
@@ -255,7 +279,7 @@
         computed: {
             repliesNumber() {
                 let total = 0;
-                for (let i=0; i < this.news.length; i++)
+                for (let i = 0; i < this.news.length; i++)
                     total += this.news[i]['replies'].length;
                 return total;
             }
@@ -274,7 +298,7 @@
 
             // mount Chart.js
             let ctx = document.getElementById(chart_id).getContext('2d');
-            let chart_config = this.build_chart_config({x: [], y: []});
+            let chart_config = this.build_chart_config();
             this.chart_instance = new Chart(ctx, chart_config);
 
             // setup timer for data update
