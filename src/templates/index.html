@@ -56,6 +56,24 @@
             background: #28206c !important;
             margin-right: 0.2em;
         }
+
+        .legend {
+            width: 100%;
+            text-align: right;
+            color: #bbb !important;
+        }
+        .legend .positive {
+            background-color: #6cca86;
+            width: 1em;
+            height: 1em;
+            display: inline-block
+        }
+        .legend .negative {
+            background-color: #f58a48;
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -72,9 +90,16 @@
         <div class="ui button orange model-button" v-on:click="use_ml_query('Apple Watch')">Apple Watch</div>
     </div>
 
-    <!-- Canvas -->
+    <!-- Plot -->
     <div style="width:98%;" class="ui basic segment" id="canvas-container" v-on:dblclick="update_plot()">
+        <!-- Legend -->
+        <div class="legend">
+            <span class="positive"></span> Positive replies &nbsp;&nbsp;&nbsp;
+            <span class="negative"></span> Negative replies
+        </div>
+        <!-- Loader -->
         <div class="ui large text loader inverted" :class="{active: loading}"></div>
+        <!-- Canvas -->
         <canvas id="canvas-1"></canvas>
     </div>
 
@@ -253,7 +278,7 @@
                     'timeFormat': 'YYYY-MM-DDTHH:mm:ssZ',
                     'title': 'Sentiment',
                     'xAxisName': 'Time',
-                    'yAxisName': 'Sentiment',
+                    'yAxisName': 'Replies',
                     'labels': [],
                     'datasets': [
                         {
