@@ -33,7 +33,11 @@ function configTimeSeries(plot) {
                 display: false,
                 text: plot.title
             },
-
+            animation: {
+                duration: 1.0,
+                easing: 'easeInOutQuad'
+            },
+            animationEasing: 'easeInOutQuad',
             scales: {
                 xAxes: [
                     {
@@ -44,7 +48,7 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#444",
+                            color: "#aaa"
                         },
                         ticks: {
                             autoSkip: true,
@@ -76,7 +80,7 @@ function configTimeSeries(plot) {
                         },
                         gridLines: {
                             borderDash: [1, 1],
-                            color: "#444"
+                            color: "#aaa"
                         },
                         ticks: {
                             fontFamily: "'Lato', 'Helvetica Neue', Arial",

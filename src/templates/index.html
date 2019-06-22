@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Heartex Sentiments</title>
+    <meta content="width=device-width, initial-scale=0.66" name="viewport">
+    <link href="semantic-ui/semantic.min.css" rel="stylesheet" type="text/css"/>
+
+    <style>
+        body {
+            background: #221c4d;
+        }
+
+        div {
+            color: #EEE !important;
+        }
+
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            font-size: 100%;
+        }
+
+        .query {
+            text-align: center;
+            font-size: 130% !important;
+        }
+
+        a div {
+            transition: all .8s ease;
+            -webkit-transition: all .8s ease;
+        }
+
+        a div:hover {
+            color: chocolate !important;
+            transition: all .8s ease;
+            -webkit-transition: all .8s ease;
+        }
+
+        #news {
+            margin-top: 4em;
+        }
+
+        .news-item {
+            margin-bottom: 1%;
+            color: #ccc;
+        }
+
+        .news-time {
+            color: #ccc !important;
+            background: #28206c !important;
+            margin-right: 0.2em;
+        }
+        .news-sentiment {
+            color: #ccc !important;
+            background: #28206c !important;
+            margin-right: 0.2em;
+        }
+
+        .legend {
+            width: 100%;
+            text-align: right;
+            color: #bbb !important;
+        }
+        .legend .positive {
+            background-color: #6cca86;
+            width: 1em;
+            height: 1em;
+            display: inline-block
+        }
+        .legend .negative {
+            background-color: #f58a48;
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app" class="ui page">
+
+    <!-- Input field -->
+    <div class="ui container">
+        <div class="ui form" style="margin: 1em 0 0.5em 0">
+            <input v-model="query" class="ui input query" type="text"
+                   placeholder="Enter keyword or use AI models below for entity smart search "/>
+        </div>
+
+        <div class="ui button orange model-button" v-on:click="use_ml_query('Apple Watch')">Apple Watch</div>
+    </div>
+
+    <!-- Plot -->
+    <div style="width:98%;" class="ui basic segment" id="canvas-container" v-on:dblclick="update_plot()">
+        <!-- Legend -->
+        <div class="legend">
+            <span class="positive"></span> Positive replies &nbsp;&nbsp;&nbsp;
+            <span class="negative"></span> Negative replies
+        </div>
+        <!-- Loader -->
+        <div class="ui large text loader inverted" :class="{active: loading}"></div>
+        <!-- Canvas -->
+        <canvas id="canvas-1"></canvas>
+    </div>
+
+    <!-- Statistics -->
+    <div class="ui center aligned grid">
+        <div class="ui three column statistics">
+            <div class="statistic">
+                <div class="value">{{ this.news.length }}</div>
+                <div class="label">News processed</div>
+            </div>
+
+            <div class="statistic">
+                <div class="value">{{ repliesNumber }}</div>
+                <div class="label">Replies analyzed</div>
+            </div>
+
+            <a href="https://heartex.net">
+                <div class="ui statistic">
+                    <div class="value">Sentiment Analysis</div>
+                    <div class="label">Based on Heartex AI platform</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- News feed -->
+    <div class="ui container news" id="news">
+        <ul>
+            <div v-for="item in this.news.slice(this.news.length-50, this.news.length).reverse()" class="news-item">
+                <div class="ui tiny label news-time">
+                    {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
+                </div>
+                <div class="ui tiny label news-sentiment">
+                    {{ item['positives'] }} <i class="ui icon thumbs up outline"></i>
+                    {{ item['negatives'] }} <i class="ui icon thumbs down outline"
+                                                style="margin-right:0 !important;"></i>
+                </div>
+                {{ item['text'] }}
+            </div>
+        </ul>
+    </div>
+
+</div>
+
+<script src="js/Chart.bundle.min.js"></script>
+<script src="js/Chart.plots.js"></script>
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/DateFormat.js"></script>
+<script src="semantic-ui/semantic.min.js"></script>
+
+<script>
+    const api_path = 'api/build-sentiment';
+    const chart_id = 'canvas-1';
+
+    // resize corresponding to window height
+    $(window).resize(function () {
+        $('#canvas-container').height($(window).height() * 0.4);
+        $('#canvas-1').height($(window).height() * 0.4);
+        $('#news').height($(window).height() * 0.2);
+    });
+    $(window).resize();
+
+    function print(o) {
+        console.log(o)
+    }
+
+    // check vue for browser compability
+    var compatibleBrowser = typeof Object['__defineSetter__'] === 'function';
+    if (!compatibleBrowser) {
+        alert('Sorry, but your browser has no Vue compatibility!');
+    }
+
+    // delayed function call
+    let timeout;
+
+    function debounce(func, wait, immediate) {
+        return function () {
+            const context = this, args = arguments;
+            const later = () => {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            const callNow = immediate && !timeout;
+
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    }
+
+    // Vue app implementation
+    var app = new Vue({
+        el: '#app',
+
+        data() {
+            return {
+                loading: true,
+                chart_instance: null,
+                news: [],
+                timer: null,
+                query: "",
+                start_date: "",
+                current_request_id: 0
+            }
+        },
+
+        methods: {
+            reset() {
+                Object.assign(this.$data, this.$options.data.apply(this));
+            },
+
+            use_ml_query(model_name) {
+                this.query = 'model:"' + model_name + '"'
+            },
+
+            calculate_start_date() {
+                const today = new Date();
+                let start = new Date();
+                let dateOffset = 1000 * 60 * 60 * 24 * 30; // 30 days back
+                start.setTime(today.getTime() - dateOffset);
+                this.start_date = start / 1000;
+                return this.start_date;
+            },
+
+            update_plot() {
+                this.loading = true;
+                this.current_request_id++;
+                let root = this;
+                let local_request_id = this.current_request_id;
+
+                $.get({
+                    url: api_path,
+                    data: {
+                        'query': this.query,
+                        'start_date': this.calculate_start_date()
+                    },
+
+                }).done((response) => {
+                    // avoid outdated requests
+                    if (local_request_id !== root.current_request_id)
+                        return;
+
+                    let result = response['result'];
+                    print(response);
+
+                    // update chart_instance
+                    this.chart_instance.data.labels = result.chart_sentiment.x;
+                    this.chart_instance.data.datasets[0].data = result.chart_positives.y;
+                    this.chart_instance.data.datasets[1].data = result.chart_negatives.y;
+                    this.chart_instance.update(1000);
+                    this.news = result['news'];
+                    this.loading = false;
+
+                }).fail((response) => {
+                    this.loading = false;
+
+                    // too small request
+                    if (response.status === 422)
+                        return;
+
+                    // some error on backend
+                    alert('Error on backend, see more in console');
+                    print(response)
+                });
+
+            },
+
+            // build data for chart_instance.js
+            build_chart_config() {
+
+                // prepare plot
+                let plot = {
+                    'type': 'line',
+                    'timeFormat': 'YYYY-MM-DDTHH:mm:ssZ',
+                    'title': 'Sentiment',
+                    'xAxisName': 'Time',
+                    'yAxisName': 'Replies',
+                    'labels': [],
+                    'datasets': [
+                        {
+                            data: [],
+                            lineTension: 0.0,
+                            backgroundColor: 'rgba(108,202,134,0.3)',
+                            borderColor: '#6cca86',
+                        },
+                        {
+                            data: [],
+                            lineTension: 0.0,
+                            backgroundColor: 'rgba(249,133,54,0.3)',
+                            borderColor: '#f58a48',
+                        }
+                    ]
+                };
+
+                // prepare full Chart.js config
+                return configTimeSeries(plot);
+            },
+        },
+
+        computed: {
+            repliesNumber() {
+                let total = 0;
+                for (let i = 0; i < this.news.length; i++)
+                    total += this.news[i]['replies'].length;
+                return total;
+            }
+        },
+
+        watch: {
+            // watch for realtime query changes
+            query() {
+                debounce(this.update_plot, 500, false)();
+            }
+        },
+
+        // vue mounting of page
+        mounted() {
+            this.loading = true;
+
+            // mount Chart.js
+            let ctx = document.getElementById(chart_id).getContext('2d');
+            let chart_config = this.build_chart_config();
+            this.chart_instance = new Chart(ctx, chart_config);
+
+            // setup timer for data update
+            this.update_plot();
+            //this.timer = setInterval(this.update_plot, 30000);
+            console.log('mounting of Chart.js and init success');
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
