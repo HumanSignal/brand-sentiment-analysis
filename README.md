@@ -10,7 +10,7 @@ specifically for your brand
 # Installation 
 
 ! Important. To make it work you need to obtain **Heartex token**, to
-do so register [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
+do so [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
 link only!).
 
 ```sh
