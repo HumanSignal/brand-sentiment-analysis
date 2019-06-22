@@ -5,13 +5,12 @@ based on Google News and Twitter news streams. It utilizes Heartex
 platform to create a custom neural network to do the study
 specifically for your brand
 
-[http://heartex.net/](Tutorial)
+[Tutorial](https://heartex.net/use-case/sentiment)
 
 # Installation 
 
 ! Important. To make it work you need to obtain **Heartex token**, to
-do so [http://heartex.net/business/signup/?ref=github](register
-here). We give you a free account with 10k API requests (with above
+do so [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
 link only!).
 
 ```sh
@@ -46,7 +45,7 @@ python src/add_sentiment_chart.py --token=$TOKEN --project=$SENTIMENT_PROJECT --
 # open sentiment html
 firefox $BRAND/index.html
 ```
-
+?ref=github
 # Filter Results First
 
 In case your brand may appear in different contexts, for example, with
