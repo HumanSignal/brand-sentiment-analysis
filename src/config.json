@@ -4,7 +4,16 @@
 
   "heartex": {
     "token": "<place your token here>",
-    "sentiment_project_id": 1
+    "sentiment_project_id": 1,
+
+    "smart_filters": [
+      {
+        "name": "Apple Watch",
+        "query": "watch",
+        "project_id": 2,
+        "threshold_score": 0.1
+      }
+    ]
   },
 
   "logger": {
