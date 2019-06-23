@@ -199,6 +199,12 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
             'chart_negatives': {'x': negatives_x, 'y': negatives_y}}
 
 
+@app.route('/api/get-smart-filters', methods=['GET'])
+@exception_treatment
+def api_get_smart_filters():
+    return answer(200, 'ok', c['heartex']['smart_filters'])
+
+
 @app.route('/api/build-sentiment', methods=['GET'])
 @exception_treatment
 def api_build_sentiment():
