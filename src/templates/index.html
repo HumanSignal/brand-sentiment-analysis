@@ -87,7 +87,10 @@
                    placeholder="Enter keyword or use AI models below for entity smart search "/>
         </div>
 
-        <div class="ui button orange model-button" v-on:click="use_ml_query('Apple Watch')">Apple Watch</div>
+        <!-- Smart Filters Buttons -->
+        <div v-for="item in this.smart_filters">
+            <div class="ui button orange model-button" v-on:click="use_ml_query(item['name'])">{{ item['name'] }}</div>
+         </div>
     </div>
 
     <!-- Plot -->
@@ -154,6 +157,7 @@
 
 <script>
     const api_path = 'api/build-sentiment';
+    const api_get_smart_filters_path = 'api/get-smart-filters';
     const chart_id = 'canvas-1';
 
     // resize corresponding to window height
@@ -204,7 +208,8 @@
                 timer: null,
                 query: "",
                 start_date: "",
-                current_request_id: 0
+                current_request_id: 0,
+                smart_filters: []
             }
         },
 
@@ -315,6 +320,20 @@
             query() {
                 debounce(this.update_plot, 500, false)();
             }
+        },
+
+        // init
+        created() {
+            $.get(api_get_smart_filters_path)
+                .done((response) => {
+                    this.smart_filters = response['result'];
+                    print(response)
+                })
+                .fail((response) => {
+                    // some error on backend
+                    alert("Error on backend, can't get smart filters");
+                    print(response)
+                });
         },
 
         // vue mounting of page

@@ -7,10 +7,8 @@ import heartex
 import requests
 import pandas as pd
 
-from datetime import datetime as datetime
 from flask import request
 from utils import exception_treatment, answer, log_config, log
-
 
 # init
 config_path = sys.argv[1] if len(sys.argv) == 2 else 'config.json'
@@ -45,23 +43,61 @@ def index():
     return flask.send_from_directory('templates', 'index.html')
 
 
+def smart_filter(tweets, smart_project_id, threshold_score):
+    """ Apply smart filter to tweets
+
+    :param tweets: input tweets obtainted by simple grep filter from DB
+    :param smart_project_id: smart filter project id on heartex
+    :param threshold_score: min score to include tweet
+    :return: smart filtered tweets
+    """
+    # apply smart filter
+    request_data = [{'text': t['text']} for t in tweets]  # leave only text field to speed up data transfer
+    predictions = heartex.api.run_predict(token=token, project=smart_project_id, data=request_data).json()
+
+    # take only relevant tweets
+    new_tweets = []
+    for i, p in enumerate(predictions):
+        if p['score'] > threshold_score and 'Relevant' in p['result'][0]['value']['choices']:
+            new_tweets.append(tweets[i])
+
+    log.info('Smart filter by project id ' + str(smart_project_id) + ' processed '
+             'with input len = ' + str(len(tweets)) + ' and output len = ' + str(len(new_tweets)))
+    return new_tweets
+
+
 def get_tweets_from_database(query, start_date):
     """ Insert here request to your DB
-    """
-    '''return [
+
+    :param query: string for DB request or model:"Model Name"
+    :param start_date: start date timestamp for tweets
+    :return: example = [
             {'text': 'cat runs', 'replies': ['bad', 'bad'], 'created_at': 123},
-            {'text': 'dog stops', 'replies': ['awesome', 'super'], 'created_at': 567}
-        ]'''
+            {'text': 'dog stops', 'replies': ['awesome', 'super'], 'created_at': 567}]
+    """
 
-    if query == 'model:"Apple Watch"':
-        query = 'Apple Watch'
+    # scan all smart filters in config
+    smart_project_id = None
+    threshold_score = 0
+    for smart in c['heartex']['smart_filters']:
+        if query == 'model:"' + smart['name'] + '"':
+            query = smart['query']  # use grep query to get dirty data
+            smart_project_id = smart['project_id']
+            threshold_score = smart['threshold_score']
+            break
 
+    # get tweets from DB request
     result = requests.get('http://tweets.makseq.com/api/tweets', params={'query': query, 'start_date': start_date})
     if result.status_code == 200:
         tweets = json.loads(result.content)
-        return tweets
     else:
         raise Exception('Tweets DB error')
+
+    # apply smart filter
+    if smart_project_id is not None:
+        tweets = smart_filter(tweets, smart_project_id, threshold_score)
+
+    return tweets
 
 
 def resampling_by_time(times, values, period):
@@ -161,6 +197,12 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
             'chart_sentiment': {'x': sentiment_x, 'y': sentiment_y},
             'chart_positives': {'x': positives_x, 'y': positives_y},
             'chart_negatives': {'x': negatives_x, 'y': negatives_y}}
+
+
+@app.route('/api/get-smart-filters', methods=['GET'])
+@exception_treatment
+def api_get_smart_filters():
+    return answer(200, 'ok', c['heartex']['smart_filters'])
 
 
 @app.route('/api/build-sentiment', methods=['GET'])
