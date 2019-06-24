@@ -42,7 +42,15 @@ export SENTIMENT_PROJECT_ID=""
 
 Open up `src/config.json` and put **$TOKEN** and **$SENTIMENT_PROJECT_ID** there
 
-# Filter Results
+# Run
+
+Execute ``` python3 service.py config.json```
+
+# Add your own data
+
+> [TBD]
+
+# Advanced: Filter Results
 
 In case your brand may appear in different contexts, for example, with
 the name of one of your products (ex: Apple Watch), you may want to
