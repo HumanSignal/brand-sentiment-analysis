@@ -1,15 +1,43 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Heartex Sentiments</title>
+    <title>Heartex Sentiment Analysis</title>
     <meta content="width=device-width, initial-scale=0.66" name="viewport">
-    <link href="semantic-ui/semantic.min.css" rel="stylesheet" type="text/css"/>
 
+    <meta charset="utf-8"/>
+    <meta content="Sentiment analysis" name="description"/>
+    <meta content="Heartex — build sentiment analysis for your data" property="og:title"/>
+    <meta content="Custom Sentiment Analysis based on Twitter stream and Heartex API" property="og:description"/>
+    <meta content="https://uploads-ssl.webflow.com/5cb5a799cf58f5f8d19a9441/5cb87dbcbfadbea87e509585_heartex_og.png" property="og:image"/>
+    <meta content="summary" name="twitter:card"/>        
+    
+    <link href="semantic-ui/semantic.min.css" rel="stylesheet" type="text/css"/>
+    <link rel="shortcut icon" href="https://go.heartex.net/static/imgs/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rrssb@1.14.0/css/rrssb.css">
+    
     <style>
         body {
             background: #221c4d;
+            font-family: Rubik, sans-serif;
+            
         }
 
+        .main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(0, #222, #222);
+            margin: 0;
+            padding: 0 1em 0em 1em;
+            height: 75px;
+        }
+
+        .content {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
         div {
             color: #EEE !important;
         }
@@ -74,78 +102,128 @@
             height: 1em;
             display: inline-block;
         }
+
+        .examples {
+            margin-top: 0.5em
+        }
+
+        .examples a {
+            border-bottom: 1px dotted #4183c4;
+            text-decoration: none;
+        }
     </style>
 </head>
 
 <body>
-<div id="app" class="ui page">
+  
+  <div class="main">    
+    <div class="ui header-logo" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%">
+      <div style="display: flex; align-items: center;">
+        <a href="https://heartex.net/" alt="Heartex"><img src="https://go.heartex.net/static/imgs/heartex_icon_5@2x.png" style="height: 50px; margin-right: 1em;"></a>
+        <a href="https://heartex.net/" alt="Heartex"><img src="https://uploads-ssl.webflow.com/5cb5a799cf58f5f8d19a9441/5cb5e98335d2cc02b25fe216_Heartex%20logo%20220x40.svg" height="26" /></a>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+      <div>
+        <!-- Place this tag where you want the button to render. -->
+        <a class="github-button" href="https://github.com/heartexlabs" data-size="large" aria-label="Follow @heartexlabs on GitHub">Check @heartexlabs</a>
+        <!-- Place this tag where you want the button to render. -->
+        <a class="github-button" href="https://github.com/heartexlabs/brand-sentiment-analysis" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star heartexlabs/brand-sentiment-analysis on GitHub">Star</a>
+        
+      </div>
+      <div>
+        &nbsp;&nbsp;
+        <a class="ui button positive" style="font-size: 12px; padding: 0.7em 1.3em;" href="https://go.heartex.net/business/signup/">»&nbsp; Build Your Own Model</a>
+      </div>
+      </div>
+      <div style="width: 210px;">
+        &nbsp;
+        <a href="https://github.com/heartexlabs/brand-sentiment-analysis" alt="Fork on GitHub">
+          <svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 250 250" fill="#151513" style="position: absolute; top: 0; right: 0">
+            <path d="M0 0l115 115h15l12 27 108 108V0z" fill="#fff"/>
+            <path class="octo-arm" d="M128 109c-15-9-9-19-9-19 3-7 2-11 2-11-1-7 3-2 3-2 4 5 2 11 2 11-3 10 5 15 9 16" style="-webkit-transform-origin: 130px 106px; transform-origin: 130px 106px"/>
+            <path class="octo-body" d="M115 115s4 2 5 0l14-14c3-2 6-3 8-3-8-11-15-24 2-41 5-5 10-7 16-7 1-2 3-7 12-11 0 0 5 3 7 16 4 2 8 5 12 9s7 8 9 12c14 3 17 7 17 7-4 8-9 11-11 11 0 6-2 11-7 16-16 16-30 10-41 2 0 3-1 7-5 11l-12 11c-1 1 1 5 1 5z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
 
+  <div id="app" class="ui page content" style="margin-bottom: 8em;">
+    <div class="ui center aligned grid" style="margin-top: 4em;">
+      <!-- <a href="https://heartex.net"> -->
+        <div class="ui" style="display: flex; align-items: center; flex-direction: column">
+          <div class="value" style="font-size: 4em; line-height: 1.4em">Sentiment Analysis</div>
+          <div class="label" style="font-size: 1em">Based on Twitter stream and Heartex API</div>
+        </div>
+      <!-- </a> -->
+    </div>
     <!-- Input field -->
     <div class="ui container">
-        <div class="ui form" style="margin: 1em 0 0.5em 0">
-            <input v-model="query" class="ui input query" type="text"
-                   placeholder="Enter keyword or use AI models below for entity smart search "/>
+      <div class="ui form" style="margin: 6em 0 2em 0">
+        <input v-model="query" class="ui input query" type="text"
+               placeholder="Enter a keyword, brand name, product name, politician or famous person"/>
+        <div class="examples">
+          <span>Try:</span>
+          <a href="#">Google</a>,
+          <a href="#">Facebook</a>,
+          <a href="#">Donald Trump</a>,
+          <a href="#">Mark Zuckerberg</a>
         </div>
+      </div>
 
-        <!-- Smart Filters Buttons -->
-        <div v-for="item in this.smart_filters">
-            <div class="ui button orange model-button" v-on:click="use_ml_query(item['name'])">{{ item['name'] }}</div>
-         </div>
+      <!-- Smart Filters Buttons -->
+      <!-- <div v-for="item in this.smart_filters"> -->
+        <!--     <div class="ui button orange model-button" v-on:click="use_ml_query(item['name'])">{{ item['name'] }}</div> -->
+        <!--  </div> -->
     </div>
 
     <!-- Plot -->
     <div style="width:98%;" class="ui basic segment" id="canvas-container" v-on:dblclick="update_plot()">
-        <!-- Legend -->
-        <div class="legend">
-            <span class="positive"></span> Positive replies &nbsp;&nbsp;&nbsp;
-            <span class="negative"></span> Negative replies
-        </div>
-        <!-- Loader -->
-        <div class="ui large text loader inverted" :class="{active: loading}"></div>
-        <!-- Canvas -->
-        <canvas id="canvas-1"></canvas>
+      <!-- Legend -->
+      <div class="legend">
+        <span class="positive"></span> Positive replies &nbsp;&nbsp;&nbsp;
+        <span class="negative"></span> Negative replies
+      </div>
+      <!-- Loader -->
+      <div class="ui large text loader inverted" :class="{active: loading}"></div>
+      <!-- Canvas -->
+      <canvas id="canvas-1"></canvas>
     </div>
 
     <!-- Statistics -->
     <div class="ui center aligned grid">
-        <div class="ui three column statistics">
-            <div class="statistic">
-                <div class="value">{{ this.news.length }}</div>
-                <div class="label">News processed</div>
-            </div>
-
-            <div class="statistic">
-                <div class="value">{{ repliesNumber }}</div>
-                <div class="label">Replies analyzed</div>
-            </div>
-
-            <a href="https://heartex.net">
-                <div class="ui statistic">
-                    <div class="value">Sentiment Analysis</div>
-                    <div class="label">Based on Heartex AI platform</div>
-                </div>
-            </a>
+      <div class="ui three column statistics">
+        <div class="statistic">
+          <div class="value">{{ this.news.length }}</div>
+          <div class="label">News processed</div>
         </div>
+
+        <div class="statistic">
+          <div class="value">{{ repliesNumber }}</div>
+          <div class="label">Replies analyzed</div>
+        </div>            
+      </div>
     </div>
 
     <!-- News feed -->
     <div class="ui container news" id="news">
-        <ul>
-            <div v-for="item in this.news.slice(this.news.length-50, this.news.length).reverse()" class="news-item">
-                <div class="ui tiny label news-time">
-                    {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
-                </div>
-                <div class="ui tiny label news-sentiment">
-                    {{ item['positives'] }} <i class="ui icon thumbs up outline"></i>
-                    {{ item['negatives'] }} <i class="ui icon thumbs down outline"
-                                                style="margin-right:0 !important;"></i>
-                </div>
-                {{ item['text'] }}
-            </div>
-        </ul>
+      <ul>
+        <div v-for="item in this.news.slice(this.news.length-50, this.news.length).reverse()" class="news-item">
+          <div class="ui tiny label news-time">
+            {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
+          </div>
+          <div class="ui tiny label news-sentiment">
+            {{ item['positives'] }} <i class="ui icon thumbs up outline"></i>
+            {{ item['negatives'] }} <i class="ui icon thumbs down outline"
+                                       style="margin-right:0 !important;"></i>
+          </div>
+          {{ item['text'] }}
+        </div>
+      </ul>
     </div>
-
+  </div>
 </div>
+
 
 <script src="js/Chart.bundle.min.js"></script>
 <script src="js/Chart.plots.js"></script>
@@ -154,6 +232,9 @@
 <script src="js/vue.js"></script>
 <script src="js/DateFormat.js"></script>
 <script src="semantic-ui/semantic.min.js"></script>
+
+<!-- Place this tag in your head or just before your close body tag. -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
 
 <script>
     const api_path = 'api/build-sentiment';
@@ -164,10 +245,19 @@
     $(window).resize(function () {
         $('#canvas-container').height($(window).height() * 0.4);
         $('#canvas-1').height($(window).height() * 0.4);
-        $('#news').height($(window).height() * 0.2);
+        // $('#news').height($(window).height() * 0.2);
     });
+    
     $(window).resize();
 
+    $(function () {
+        $('.examples a').on('click', function () {
+            var a = $(this);
+            app.query = a.text();
+            return false;
+        });
+    });
+    
     function print(o) {
         console.log(o)
     }
