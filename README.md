@@ -7,6 +7,8 @@ specifically for your brand
 
 [Tutorial](https://heartex.net/use-case/sentiment)
 
+![](https://github.com/heartexlabs/brand-sentiment-analysis/raw/master/demo.png)
+
 # Installation 
 
 > Important. To make it work you need to obtain **Heartex token**, to do so [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
