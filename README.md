@@ -9,13 +9,14 @@ specifically for your brand
 
 # Installation 
 
-! Important. To make it work you need to obtain **Heartex token**, to
-do so [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
+> Important. To make it work you need to obtain **Heartex token**, to do so [signup here](https://go.heartex.net/business/signup/?ref=github). We give you a free account with 10k API requests (with above
 link only!).
 
 ```sh
 # install
-
+python3 -m venv bsa-env
+source bsa-env/bin/active
+pip install -r requirements
 ```
 
 ```sh
@@ -24,7 +25,7 @@ export TOKEN=""
 export BRAND=""
 ```
 
-# Run it for your own brand
+# Create Sentiment Model
 
 ```sh
 # first we need to grab news data
@@ -32,21 +33,16 @@ python src/get_google_news.py --pages=10 --query=$BRAND --output=news.csv
 ```
 
 ```sh
-# 
+#  create project on heartex
 python src/create_sentiment_project.py --token=$TOKEN --input=news.csv
 
-export SENTIMENT_PROJECT=""
+# you will get project id, save it here
+export SENTIMENT_PROJECT_ID=""
 ```
 
-```sh
-# predict dataset and save it's sentiment 
-python src/add_sentiment_chart.py --token=$TOKEN --project=$SENTIMENT_PROJECT --input=news.csv --results=$BRAND
+Open up `src/config.json` and put **$TOKEN** and **$SENTIMENT_PROJECT_ID** there
 
-# open sentiment html
-firefox $BRAND/index.html
-```
-?ref=github
-# Filter Results First
+# Filter Results
 
 In case your brand may appear in different contexts, for example, with
 the name of one of your products (ex: Apple Watch), you may want to
@@ -69,10 +65,4 @@ python src/create_filter_project.py --token=$TOKEN --input=news.csv --labels=$PR
 export FILTER_PROJECT=""
 ```
 
-```sh
-# get predictions
-python src/predict_and_filter.py --project=$FILTER_PROJECT --token=$TOKEN --output=filtered.csv --filter-labels=$PRODUCTS
-```
-
-Now you have filtered.csv which you can use for further sentiment
-analysis.
+Now you have what is called a smart filter, edit config.json and include it there. You will see smart filter buttons on the index page.
