@@ -140,12 +140,12 @@
         </div>
 
         <!-- Center area -->
-        <div class="one wide column" style="display: flex; align-items: center;">
+        <div class="one wide column" style="display: flex; margin-top: 1em;">
             <!-- Github cards -->
             <a class="github-button" href="https://github.com/heartexlabs" data-size="large"
                aria-label="Follow @heartexlabs on GitHub">Check @heartexlabs</a>&nbsp;&nbsp;&nbsp;
             <a class="github-button" href="https://github.com/heartexlabs/brand-sentiment-analysis"
-               data-icon="octicon-star" data-size="large" data-show-count="true"
+               data-icon="octicon-star"  data-size="large" data-show-count="true"
                aria-label="Star heartexlabs/brand-sentiment-analysis on GitHub">Star</a>&nbsp;&nbsp;&nbsp;
 
             <!-- Build own model button -->
@@ -202,7 +202,7 @@
         </div>
 
         <!-- Smart Filters Buttons -->
-        <div v-for="item in this.smart_filters">
+        <div v-for="item in this.smart_filters" style="margin-top: 1em">
             Smart filters powered by AI:
             <div class="ui button orange model-button" v-on:click="use_ml_query(item['name'])">{{ item['name'] }}</div>
         </div>
