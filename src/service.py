@@ -79,7 +79,7 @@ def get_tweets_from_database(query, start_date):
     # scan all smart filters in config
     smart_project_id = None
     threshold_score = 0
-    for smart in c['heartex']['smart_filters']:
+    for smart in c['heartex'].get('smart_filters', []):
         if query == 'model:"' + smart['name'] + '"':
             query = smart['query']  # use grep query to get dirty data
             smart_project_id = smart['project_id']
@@ -203,7 +203,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
 @app.route('/api/get-smart-filters', methods=['GET'])
 @exception_treatment
 def api_get_smart_filters():
-    smart_filters = c['heartex']['smart_filters'] if 'smart_filters' in c['heartex'] else []
+    smart_filters = c['heartex'].get('smart_filters', [])
     return answer(200, 'ok', smart_filters)
 
 
