@@ -140,7 +140,6 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
     predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
     if not isinstance(predictions, list):
         log.warning('No predictions by ML backend returned')
-        raise Exception('No predictions by ML backend returned')
 
     # unpack tasks back
     count = 0
@@ -203,8 +202,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
 @app.route('/api/get-smart-filters', methods=['GET'])
 @exception_treatment
 def api_get_smart_filters():
-    smart_filters = c['heartex']['smart_filters'] if 'smart_filters' in c['heartex'] else []
-    return answer(200, 'ok', smart_filters)
+    return answer(200, 'ok', c['heartex']['smart_filters'])
 
 
 @app.route('/api/build-sentiment', methods=['GET'])
