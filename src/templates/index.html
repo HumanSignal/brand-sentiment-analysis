@@ -202,7 +202,7 @@
         </div>
 
         <!-- Smart Filters Buttons -->
-        <div v-for="item in this.smart_filters" style="margin-top: 1em"> 
+        <div v-for="item in this.smart_filters" style="margin-top: 1em">  
             Smart filters powered by AI:
             <div class="ui button orange model-button" v-on:click="use_ml_query(item['name'])">{{ item['name'] }}</div>
         </div>
