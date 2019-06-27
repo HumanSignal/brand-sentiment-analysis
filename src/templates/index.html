@@ -380,6 +380,10 @@
                     if (response.status === 422)
                         return;
 
+                    // no tweets found
+                    if (response.status === 400)
+                        return;
+
                     // some error on backend
                     alert('Error on backend, see more in console');
                     print(response)

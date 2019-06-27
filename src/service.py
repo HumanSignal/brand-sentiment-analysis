@@ -33,7 +33,7 @@ def send_log():
     """ Log access via web
     """
     logfile = log_config['handlers']['file']['filename']
-    return flask.send_file(open(logfile), mimetype='text/plain', as_attachment=False)
+    return flask.send_file(logfile, mimetype='text/plain', as_attachment=False)
 
 
 @app.route('/')
@@ -226,6 +226,8 @@ def api_build_sentiment():
 
     tweets = get_tweets_from_database(query, start_date)
     log.info('Tweets found in DB %i' % len(tweets))
+    if len(tweets) == 0:
+        return answer(400, 'no tweets found in DB')
 
     output = heartex_build_plot(tweets)
     log.info('Heartex prediction completed')
