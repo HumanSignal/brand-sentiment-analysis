@@ -53,7 +53,7 @@ def smart_filter(tweets, smart_project_id, threshold_score):
     """
     # apply smart filter
     request_data = [{'text': t['text']} for t in tweets]  # leave only text field to speed up data transfer
-    predictions = heartex.api.run_predict(token=token, project=smart_project_id, data=request_data).json()
+    predictions = heartex.api.run_predict(token=token, project=smart_project_id, data=request_data).json()['results']
 
     # take only relevant tweets
     new_tweets = []
@@ -137,9 +137,9 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
             request_data.append({'text': reply})
 
     # heartex predict
-    predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
+    predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()['results']
     if not isinstance(predictions, list):
-        log.warning('No predictions by ML backend returned')
+        log.warning('No predictions by ML backend returned: ' + str(predictions))
         raise Exception('No predictions by ML backend returned')
 
     # unpack tasks back
