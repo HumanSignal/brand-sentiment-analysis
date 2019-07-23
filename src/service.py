@@ -53,7 +53,11 @@ def smart_filter(tweets, smart_project_id, threshold_score):
     """
     # apply smart filter
     request_data = [{'text': t['text']} for t in tweets]  # leave only text field to speed up data transfer
-    predictions = heartex.api.run_predict(token=token, project=smart_project_id, data=request_data).json()['results']
+    predictions = heartex.api.run_predict(token=token, project=smart_project_id, data=request_data).json()
+    if 'results' in predictions:
+        predictions = predictions['results']
+    else:
+        raise Exception('ML backend returns incorrect result: ' + str(predictions))
 
     # take only relevant tweets
     new_tweets = []
@@ -62,7 +66,8 @@ def smart_filter(tweets, smart_project_id, threshold_score):
             new_tweets.append(tweets[i])
 
     log.info('Smart filter by project id ' + str(smart_project_id) + ' processed '
-             'with input len = ' + str(len(tweets)) + ' and output len = ' + str(len(new_tweets)))
+                                                                     'with input len = ' + str(
+        len(tweets)) + ' and output len = ' + str(len(new_tweets)))
     return new_tweets
 
 
@@ -137,7 +142,12 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
             request_data.append({'text': reply})
 
     # heartex predict
-    predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()['results']
+    predictions = heartex.api.run_predict(token=token, project=sentiment_project_id, data=request_data).json()
+    if 'results' in predictions:
+        predictions = predictions['results']
+    else:
+        raise Exception('ML backend returns incorrect result: ' + str(predictions))
+
     if not isinstance(predictions, list):
         log.warning('No predictions by ML backend returned: ' + str(predictions))
         raise Exception('No predictions by ML backend returned')
@@ -148,6 +158,7 @@ def heartex_build_plot(data, threshold_score=0.5, period='1D'):
         tweet['predictions'] = []
         for _ in tweet['replies']:
             tweet['predictions'].append(predictions[count])
+            tweet['replies_visible'] = False
             count += 1
 
     # collect score values (positives & negatives)
@@ -231,7 +242,7 @@ def api_build_sentiment():
 
     output = heartex_build_plot(tweets)
     log.info('Heartex prediction completed')
-    
+
     return answer(200, 'ok', output)
 
 

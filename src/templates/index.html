@@ -75,6 +75,16 @@
             color: #ccc !important;
             background: #28206c !important;
             margin-right: 0.2em;
+            cursor: pointer;
+        }
+
+        .news-replies {
+            display: block;
+            font-size: 70%;
+        }
+
+        .news-replies ul {
+            list-style-type: none;
         }
 
         .legend {
@@ -244,12 +254,24 @@
                 <div class="ui tiny label news-time">
                     {{ (new Date(item['created_at']*1000)).format('yyyy.mm.dd HH:MM') }}
                 </div>
-                <div class="ui tiny label news-sentiment">
+                <div class="ui tiny label news-sentiment" @click="show_replies(item)">
                     {{ item['positives'] }} <i class="ui icon thumbs up outline"></i>
                     {{ item['negatives'] }} <i class="ui icon thumbs down outline"
                                                style="margin-right:0 !important;"></i>
                 </div>
                 {{ item['text'] }}
+
+                <!-- Replies -->
+                <div  class="news-replies" v-if="item['replies_visible']">
+                    <ul>
+                        <li v-for="(p, i) in item['predictions']">
+                            <i v-if="item.predictions[i].result[0].value.choices[0] === 'Positive'" class="ui icon thumbs up outline"></i>
+                            <i v-if="item.predictions[i].result[0].value.choices[0] === 'Negative'" class="ui icon thumbs down outline"></i>
+                            <i v-if="item.predictions[i].result[0].value.choices[0] === 'Neutral'" class="ui icon"></i>
+                            {{ item['replies'][i] }}
+                        </li>
+                    </ul>
+                </div>
             </div>
         </ul>
     </div>
@@ -319,7 +341,7 @@
                 chart_instance: null,
                 news: [],
                 timer: null,
-                query: "",
+                query: "Bitcoin",
                 start_date: "",
                 current_request_id: 0,
                 smart_filters: []
@@ -329,6 +351,16 @@
         methods: {
             reset() {
                 Object.assign(this.$data, this.$options.data.apply(this));
+            },
+
+            show_replies(item) {
+                if (item.hasOwnProperty('replies_visible')) {
+                    item['replies_visible'] = !item['replies_visible'];
+                }
+                else {
+                    item['replies_visible'] = true;
+                }
+                console.log('show')
             },
 
             use_ml_query(model_name) {
